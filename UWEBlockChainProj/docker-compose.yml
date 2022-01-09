@@ -1,0 +1,41 @@
+version: "3.9"
+  
+services:    
+  nginx:
+    build: nginx
+    ports:
+      - 8087:80
+      #if you go to nginx. conf you will see that it listen at :80
+      #from nginx at port 80 the site  will be accessed outside on 127.0.0.1:8087
+    volumes:
+      - staticfiles:/code/static
+    depends_on: 
+      - web
+
+  web:
+    build: .
+    restart: unless-stopped
+    command: sh -c 'python manage.py makemigrations &&
+                     python manage.py migrate &&                  
+                     python manage.py collectstatic --noinput &&
+                     gunicorn UWEBlockChainProj.wsgi:application --bind  0.0.0.0:8000' 
+                                        #/usr/local/bin/gunicorn NewHonlecturerProject.wsgi:application --bind  0.0.0.0:8000'
+    #command:        gunicorn -w 2 -b 0.0.0.0:8084 --chdir /code/NewHonlecturerProject NewHonlecturerProject.wsgi
+                    #python3 NewHonlecturerProject/manage.py runserver 0.0.0.0:8084'
+    #command: bash -c "PYTHONPATH=$$PWD/..gunicorn --bind 0.0.0.0:8000 NewHonlecturerProject.wsgi:application"
+    #command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; python3 NewHonlecturerProject/manage.py runserver 0.0.0.0:8084'
+    #command: python NewHonlecturerProject/manage.py runserver 0.0.0.0:8084
+    # command: sh -c "python NewHonlecturer/NewHonlecturerProject/manage.py makemigrations &&
+    #                python NewHonlecturer/NewHonlecturerProject/manage.py migrate  &&
+    #                python NewHonlecturer/NewHonlecturerProject/manage.py runserver 0.0.0.0:8084"
+    #command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; python3 NewHonlecturerProject/manage.py runserver 0.0.0.0:8084'
+    #command: NewHonlecturerProject/gunicorn NewHonlecturerProject.wsgi.application - bind 0.0.0.0:8084
+    volumes:
+      - .:/code
+      - staticfiles:/code/static
+    #- ./NewHonlecturerProject:/code
+    # environment:
+    #   PYTHONPATH: PYTHONPATH=$$PWD/..
+    ports:
+      - "8000:8000"
+ 
